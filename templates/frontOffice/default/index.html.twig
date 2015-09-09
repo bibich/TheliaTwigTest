@@ -1,0 +1,206 @@
+{% default_domain "fo.default-twig" %}
+<ul>
+    <li>Product : {{ product('title') }}</li>
+    <li>Category : {{ category('title') }}</li>
+    <li>Folder : {{ folder('title') }}</li>
+    <li>Content : {{ content('title') }}</li>
+    <li>Customer : {{ customer('foo') }}</li>
+    <li>Currency : {{ currency('symbol') }}</li>
+    <li>Country : {{ country('isoalpha2') }}</li>
+    <li>Lang : {{ lang('locale') }}</li>
+    <li>cart : {{ cart('total_price') }}</li>
+    <li>order : {{ order('postage') }}</li>
+    <li>config : {{ config('active-front-template') }}</li>
+    <li>stats : {{ stats('sales', 'this_month', 'this_month') }}</li>
+    <li>brand : {{ brand('title') }}</li>
+</ul>
+
+{% postage %}
+<p>
+   postage : {{ postage ~ currency('symbol') }}
+</p>
+{% endpostage %}
+
+<p>
+    <a href="{{ url("/product/", {id: 2, arg1: "val1"}) }}">coucou</a>
+</p>
+<p>
+    <a href="{{ current_url() }}">current link</a>
+</p>
+<p>
+    <a href="{{ index_url() }}">index link</a>
+</p>
+<p>
+    <a href="{{ previous_url() }}">previous link</a>
+</p>
+<p>
+    traduction : {{ intl('Secure payment', [], null, 'en_US') }} <br>
+    traduction 2 : {{ intl('Secure payment') }} <br>
+    traduction 3 : {{ intl('Sorry, an error occurred: %s', {'%s': 'foo'}, 'front') }} <br>
+</p>
+{##}
+<p>
+    {% set myDate = date() %}
+    date 1 : {{ format_date({date: myDate}) }}<br>
+    date 2 : {{ format_date({date: myDate, format:"Y-m-d H:i:s"}) }}<br>
+    date 3 : {{ format_date({date: myDate, format:"D l F j", locale:"en_US"}) }}<br>
+    date 4 : {{ format_date({date: myDate, format:"l F j", locale:"fr_FR"}) }}<br>
+    date 5 : {{ format_date({date: myDate, output:"date"}) }}<br>
+    date 6 : {{ format_date({timestamp: myDate|date('U'), output:"datetime"}) }}<br>
+
+    number 1 : {{ format_number({number:"1246.12", decimals:"1", dec_point:",", thousands_sep:" "}) }}<br>
+    number 2 : {{ format_number({number:"1246.12"}) }}<br>
+
+    money 1 : {{ format_money({number:"1246.12", decimals:"1", dec_point:",", thousands_sep:" ", symbol:"€"}) }}<br>
+    money 2 : {{ format_money({number:"1246.12"}) }}<br>
+</p>
+
+<p>
+    {% if has_flash('test') %}
+        flash messages 'test' : <br>
+        {% for message in flash('test') %}
+            {{ message }}<br>
+        {%  endfor %}
+    {% else %}
+        no flash messages 'test'
+    {% endif %}
+</p>
+
+<p>
+    all flash messages : <br>
+    {% for type, messages in flash() %}
+        {{ type }} : <br>
+        {% for message in messages %}
+            {{ message }}<br>
+        {%  endfor %}
+    {%  endfor %}
+</p>
+
+<br>
+{% ifloop {rel:"cat"} %}
+    <p>Before categories</p>
+    <ul>
+    {% loop {type:"category", name:"cat", limit:"2"} %}
+        <li>{{ ID }} : {{ TITLE }}
+            <ul>
+        {% loop {type:"product", name:"prod", category: ID} %}
+            <li>Title : {{ TITLE }} </li>
+        {% endloop %}
+            </ul>
+        </li>
+    {% endloop %}
+    </ul>
+    <p>After categories</p>
+{% endifloop %}
+{% elseloop {rel:"cat"} %}
+    <p>there is no category</p>
+{% endelseloop %}
+
+{% ifloop {rel:"test"} %}
+    <p>Avant loop test</p>
+    {% loop {type: "product", name: "test", id:"66666"} %}
+        contenu loop product
+    {% endloop %}
+    <p>Après loop test</p>
+{% endifloop %}
+
+{% ifloop {rel: "cat"} %}
+    des résultats pour la boucle foo <br>
+{% endifloop %}
+
+{% elseloop {rel: "test"} %}
+    pas de résultat pour la boucle test
+{% endelseloop %}
+
+
+{% loop {type:"category", name:"bar", id:"2"} %}
+    loop category : {{ TITLE }}
+{% endloop %}
+
+<p>Products Loop</p>
+<ul>
+{% loop {type:"product", name:"pagination", limit:"5", page:"3"} %}
+    <li>{{ TITLE }}</li>
+{% endloop %}
+</ul>
+
+<p>Pagination</p>
+<ul>
+{% pageloop {rel: "pagination"} %}
+    <li>{{ PAGE }} {% if CURRENT == PAGE %} current {% endif %} / last : {{ END }}</li>
+{% endpageloop %}
+</ul>
+
+<h2>Hook</h2>
+
+<h3>Hook Function</h3>
+
+{# twig.function-test-2 is not empty #}
+{% ifhook {rel:"twig.function-test"} %}
+    <p>before hook <strong>twig.function-test</strong></p>
+        {% hook {name: "twig.function-test"} %}
+    <p>after hook <strong>twig.function-test</strong></p>
+{% endifhook %}
+
+{% ifhook {rel:"twig.function-test"} %}
+    <p style="color: blue">this block should be visible</p>
+{% endifhook %}
+{% elsehook {rel:"twig.function-test"} %}
+<p style="color: red">this block should not be visible</p>
+{% endelsehook %}
+
+
+{# twig.function-test-2 is empty #}
+{% ifhook {rel:"twig.function-test-2"} %}
+    <p>before hook <em>twig.function-test-2</em></p>
+        {% hook {name: "twig.function-test-2"} %}
+    <p>after hook twig.function-test-2</p>
+{% endifhook %}
+{% elsehook {rel:"twig.function-test-2"} %}
+    <p>twig.function-test-2 is empty</p>
+{% endelsehook %}
+
+
+<h3>Hook Block</h3>
+
+{% hookblock {name: "twig.block-test"} %}
+
+{%  set class = 'myClass' %}
+<p>test variable | class == {{ class }}</p>
+
+{% ifhook {rel: "twig.block-test"} %}
+    <p>before hook <strong>twig.block-test</strong></p>
+    {% forhook {rel:'twig.block-test', fileds: 'id,class,content'} %}
+        <p>
+            id: {{ id }}<br />
+            class: {{ class }}<br />
+            other: {{ other }}<br />
+        </p>
+
+        {{ content|raw }}
+
+    {% endforhook %}
+    <p>after hook <strong>twig.block-test</strong></p>
+{% endifhook %}
+
+<p>test variable | class == {{ class }}</p>
+
+{% hookblock {name: "twig.block-test-2", var1: "myVar1"} %}
+{% ifhook {rel:"twig.block-test-2"} %}
+<p style="color: blue">this block should be visible</p>
+{% endifhook %}
+
+{% elsehook {rel:"twig.block-test-2"} %}
+<p style="color: red">this block should not be visible</p>
+{% endelsehook %}
+
+<h2>App</h2>
+
+requestUri: {{ app.request.requestUri }}
+
+{#
+{% set queryParams = app.request.query.all %}
+{% set queryParams = queryParams|merge({queryKey: newQueryValue}) %}
+
+{{ queryParams }}
+#}
